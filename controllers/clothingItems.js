@@ -95,4 +95,4 @@ const deleteLike = (req, res) => {
     });
 };
 
-module.exports = { createItem, getItems, deleteItem, addLike, deleteItem };
+module.exports = { createItem, getItems, deleteItem, addLike, deleteLike };

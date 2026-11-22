@@ -21,7 +21,8 @@
   "homepage": "https://github.com/Agent610/what-to-wear-back#readme",
   "dependencies": {
     "express": "^4.22.3",
-    "mongoose": "^8.24.8"
+    "mongoose": "^8.24.8",
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
