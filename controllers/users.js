@@ -25,9 +25,7 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST)
-          .send({ message: "Bad request user not found" });
+        return res.status(BAD_REQUEST).send({ message: err.message });
       }
       return res.status(DEFAULT).send({ message: "Default" });
     });
