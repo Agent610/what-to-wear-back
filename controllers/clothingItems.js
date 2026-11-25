@@ -4,6 +4,7 @@ const {
   BAD_REQUEST,
   NOT_FOUND,
   DEFAULT,
+  REQUEST_DENIED,
 } = require("../utils/errors.js");
 
 const createItem = (req, res) => {
@@ -36,9 +37,18 @@ const getItems = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
-    .then(() => res.status(SUCCESS).send({ message: "Item was deleted" }))
+    .then((item) => {
+      if (String(item.owner) !== req.user._id) {
+        return res
+          .status(REQUEST_DENIED)
+          .send({ message: "You can't delete this item" });
+      }
+      return item
+        .deleteOne()
+        .then(() => res.status(SUCCESS).send({ message: "Item was deleted" }));
+    })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         res.status(NOT_FOUND).send({ message: "Item was not found" });
@@ -47,6 +57,7 @@ const deleteItem = (req, res) => {
           .status(BAD_REQUEST)
           .send({ message: "Search resulted in a bad request" });
       }
+
       res.status(DEFAULT).send({ message: "Default" });
     });
 };
