@@ -1,49 +1,50 @@
 const ClothingItem = require("../models/clothingItem.js");
+const BadRequestError = require("../utils/BadRequestError.js");
+const ForbiddenError = require("../utils/ForbiddenError.js");
+const NotFoundError = require("../utils/NotFoundError.js");
+
 const {
   SUCCESS,
-  BAD_REQUEST,
-  NOT_FOUND,
-  DEFAULT,
-  REQUEST_DENIED,
+  // BAD_REQUEST,
+  // NOT_FOUND,
+  // DEFAULT,
+  // REQUEST_DENIED,
 } = require("../utils/errors.js");
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => {
-      res.send({ data: item });
+      res.send({ item });
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        res
-          .status(BAD_REQUEST)
-          .send({ message: "Bad request, validation error" });
+        next(new BadRequestError("Validation error"));
+      } else {
+        next(err);
       }
-      res.status(DEFAULT).send({ message: "Default" });
     });
 };
 
-const getItems = (req, res) => {
+const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then((items) =>
       res.status(SUCCESS).send({ message: "Item was found", items })
     )
-    .catch(() => {
-      res.status(DEFAULT).send({ message: "Default" });
+    .catch((err) => {
+      next(err);
     });
 };
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
 
   ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
-        return res
-          .status(REQUEST_DENIED)
-          .send({ message: "You can't delete this item" });
+        return next(new ForbiddenError("You can't delete this item"));
       }
       return item
         .deleteOne()
@@ -51,18 +52,14 @@ const deleteItem = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        res.status(NOT_FOUND).send({ message: "Item was not found" });
-      } else if (err.name === "CastError") {
-        res
-          .status(BAD_REQUEST)
-          .send({ message: "Search resulted in a bad request" });
+        next(new NotFoundError("Validation Error"));
+      } else {
+        next(err);
       }
-
-      res.status(DEFAULT).send({ message: "Default" });
     });
 };
 
-const addLike = (req, res) => {
+const addLike = (req, res, next) => {
   const { itemId } = req.params;
 
   ClothingItem.findByIdAndUpdate(
@@ -72,19 +69,20 @@ const addLike = (req, res) => {
   )
     .then((item) => {
       if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Error not found" });
+        return next(new NotFoundError("Error not found"));
       }
       return res.send(item);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Bad request" });
+        next(new BadRequestError("Bad Request"));
+      } else {
+        next(err);
       }
-      return res.status(DEFAULT).send({ message: "Default" });
     });
 };
 
-const deleteLike = (req, res) => {
+const deleteLike = (req, res, next) => {
   const { itemId } = req.params;
 
   ClothingItem.findByIdAndUpdate(
@@ -94,15 +92,16 @@ const deleteLike = (req, res) => {
   )
     .then((item) => {
       if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Error not found" });
+        return next(new NotFoundError("Error not found"));
       }
       return res.send(item);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Bad request" });
+        next(new BadRequestError("Bad request"));
+      } else {
+        next(err);
       }
-      return res.status(DEFAULT).send({ message: "Default" });
     });
 };
 

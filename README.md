@@ -15,3 +15,7 @@ Throughout the back-end portion of this project the following technologies and t
 `npm run start` — to launch the server
 
 `npm run dev` — to launch the server with the hot reload feature
+
+<!--Get the deployed project domain name (Backend url)>
+
+<!--Frontend Github repo (Not yet)>
